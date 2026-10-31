@@ -3,6 +3,10 @@ set -euo pipefail
 
 cd /opt/baby-shop
 
+if ! getent passwd babyshop-api >/dev/null; then
+  sudo useradd --system --uid 10001 --user-group --no-create-home --home-dir /nonexistent --shell /sbin/nologin babyshop-api
+fi
+
 if [[ ! -f .env.api ]]; then
   umask 077
   mongo_password="$(openssl rand -hex 32)"

@@ -5,6 +5,10 @@ cd /opt/baby-shop
 exec 9>/opt/baby-shop/.deploy.lock
 flock -n 9 || exit 0
 
+if ! getent passwd babyshop-api >/dev/null; then
+  sudo useradd --system --uid 10001 --user-group --no-create-home --home-dir /nonexistent --shell /sbin/nologin babyshop-api
+fi
+
 git fetch --quiet origin main
 target="$(git rev-parse origin/main)"
 deployed="$(cat /opt/baby-shop/.deployed-revision 2>/dev/null || true)"
