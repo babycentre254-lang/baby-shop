@@ -61,6 +61,10 @@ export class UsersService {
     return this.repo.findByEmail(email, true);
   }
 
+  async findByIdWithPassword(id: string) {
+    return this.repo.findByIdWithRefreshVersion(id);
+  }
+
   async hashPassword(plain: string): Promise<string> {
     return bcrypt.hash(plain, SALT_ROUNDS);
   }

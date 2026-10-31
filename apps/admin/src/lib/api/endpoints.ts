@@ -24,6 +24,11 @@ import { apiClient } from "./client";
 
 export const authApi = {
   me: () => apiClient<{ user: any }>("/auth/me"),
+  changePassword: (input: { currentPassword: string; password: string }) =>
+    apiClient<{ passwordChanged: boolean }>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   logout: () =>
     apiClient<{ loggedOut: boolean }>("/auth/logout", { method: "POST" }),
 };

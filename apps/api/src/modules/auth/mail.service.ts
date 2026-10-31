@@ -73,13 +73,26 @@ export class MailService {
     });
   }
 
+  async sendPasswordChanged(input: { to: string; firstName: string }): Promise<void> {
+    const safeName = this.escapeHtml(input.firstName);
+    await this.send({
+      to: input.to,
+      subject: "Your BabyCentre password was changed",
+      text: `Hi ${input.firstName}, your BabyCentre password was changed. If you did not make this change, reset your password immediately and contact support.`,
+      html: this.emailFrame(
+        "Password changed",
+        `<p style="margin:0 0 16px;color:#4a5461">Hi ${safeName}, the password for your BabyCentre account was just changed.</p><p style="margin:0;color:#4a5461">If you made this change, no action is needed. If you did not, reset your password immediately and contact our support team.</p>`
+      ),
+    });
+  }
+
   private async send(message: {
     to: string;
     subject: string;
     text: string;
     html: string;
   }): Promise<void> {
-    if (!this.transporter || !this.from.includes("<")) {
+    if (!this.transporter || !this.from.includes("<") || !this.from.includes(">")) {
       throw new ServiceUnavailableException("Email delivery is not configured");
     }
 

@@ -15,6 +15,7 @@ import type {
   RegisterInput,
   LoginInput,
   ResetPasswordInput,
+  ChangePasswordInput,
   VerifyEmailInput,
 } from "@baby-shop/shared";
 
@@ -151,6 +152,23 @@ export class AuthService {
     await this.users.bumpRefreshVersion(userId);
   }
 
+  async changePassword(userId: string, input: ChangePasswordInput): Promise<AuthTokens> {
+    const user = await this.users.findByIdWithPassword(userId);
+    if (!user?.passwordHash || !(await this.users.verifyPassword(input.currentPassword, user.passwordHash))) {
+      throw new UnauthorizedException({ code: "INVALID_CURRENT_PASSWORD", message: "Current password is incorrect." });
+    }
+    if (await this.users.verifyPassword(input.password, user.passwordHash)) {
+      throw new BadRequestException({ code: "PASSWORD_UNCHANGED", message: "Choose a password you have not used for this account." });
+    }
+    await this.users.setPasswordHash(userId, await this.users.hashPassword(input.password));
+    await this.users.bumpRefreshVersion(userId);
+    const tokens = await this.issueTokens(user, true);
+    void this.mail.sendPasswordChanged({ to: user.email, firstName: user.firstName }).catch(() =>
+      this.logger.warn("Password change notification could not be delivered")
+    );
+    return tokens;
+  }
+
   async issueTokens(user: UserDocument, rememberMe = true): Promise<AuthTokens> {
     const version = await this.users.getRefreshVersion(user._id.toString());
     const [accessToken, refreshToken] = await Promise.all([
@@ -226,6 +244,9 @@ export class AuthService {
     const passwordHash = await this.users.hashPassword(input.password);
     await this.users.setPasswordHash(user._id.toString(), passwordHash);
     await this.users.bumpRefreshVersion(user._id.toString());
+    void this.mail.sendPasswordChanged({ to: user.email, firstName: user.firstName }).catch(() =>
+      this.logger.warn("Password reset notification could not be delivered")
+    );
   }
 
   private hashResetCode(userId: string, code: string): string {

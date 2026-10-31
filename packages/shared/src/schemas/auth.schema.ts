@@ -53,6 +53,11 @@ export const resetPasswordSchema = z.object({
   password: passwordSchema,
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required").max(72),
+  password: passwordSchema,
+});
+
 export const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(60).trim().optional(),
   lastName: z.string().min(1).max(60).trim().optional(),
@@ -65,4 +70,5 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

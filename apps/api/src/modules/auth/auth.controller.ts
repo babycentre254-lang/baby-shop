@@ -37,6 +37,8 @@ import {
   type VerifyEmailInput,
   updateProfileSchema,
   type UpdateProfileInput,
+  changePasswordSchema,
+  type ChangePasswordInput,
 } from "@baby-shop/shared";
 
 @ApiTags("auth")
@@ -155,6 +157,19 @@ export class AuthController {
   ) {
     const user = await this.users.updateProfile(userId, dto);
     return { user };
+  }
+
+  @Post("change-password")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentUser("sub") userId: string,
+    @Body(new ZodValidationPipe(changePasswordSchema)) dto: ChangePasswordInput,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const tokens = await this.auth.changePassword(userId, dto);
+    this.cookies.setAuthCookies(res, tokens.accessToken, tokens.refreshToken, true);
+    return { passwordChanged: true };
   }
 
   @Public()
