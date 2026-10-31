@@ -1,0 +1,12 @@
+[Unit]
+Description=Deploy Baby Shop API when the GitHub main branch changes
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/baby-shop
+ExecStart=/opt/baby-shop/deploy/vps/update.sh
+TimeoutStartSec=15min

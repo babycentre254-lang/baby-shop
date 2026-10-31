@@ -1,0 +1,11 @@
+[Unit]
+Description=Check GitHub for Baby Shop API updates
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=2min
+Persistent=true
+Unit=baby-shop-api-deploy.service
+
+[Install]
+WantedBy=timers.target

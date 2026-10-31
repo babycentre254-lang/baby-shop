@@ -1,0 +1,54 @@
+name: baby-shop-api
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME in .env.api}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env.api}
+      MONGO_INITDB_DATABASE: baby-shop
+    volumes:
+      - baby_shop_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [private]
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: baby-shop-api:latest
+    restart: unless-stopped
+    init: true
+    env_file: .env.api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    ports:
+      - "127.0.0.1:4400:4000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4000/api/v1/health').then(async r => process.exit(r.ok && (await r.json()).data?.status === 'ok' ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 30s
+    networks: [private]
+
+volumes:
+  baby_shop_mongo:
+
+networks:
+  private:
+    driver: bridge
