@@ -4,7 +4,7 @@ import type { ApiResponse } from "@baby-shop/shared";
 // Config
 // ═══════════════════════════════════════════════════════════
 
-const API_URL = process.env.API_URL ?? "http://127.0.0.1:4000/api/v1";
+const API_URL = (process.env.API_URL ?? "http://127.0.0.1:4000/api/v1").replace(/[./]+$/, "");
 
 // ═══════════════════════════════════════════════════════════
 // Error class
